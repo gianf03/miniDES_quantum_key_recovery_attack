@@ -7,12 +7,12 @@ from utils import split, swap, merge, decToBin, binToDec, strToBytes, bytesToStr
 
 class PBox:
     def __init__(self, in_length, out_order):
-        # 设置该PBox的一些属性
+        # set some properties for the permutation Box
         self.in_length = in_length
         self.out_order = out_order
 
     def cal(self, input):
-        # 该PBox的计算
+        # calculation of this permutation Box
         result = input[self.out_order]
         return result
 

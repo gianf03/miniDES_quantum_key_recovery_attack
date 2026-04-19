@@ -16,7 +16,6 @@ def merge(left, right):
     result = np.append(result, right)
     return result
 
-
 def binToDec(input):
     binary_string = ''.join(np.array(input).astype(str))
 

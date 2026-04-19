@@ -10,8 +10,8 @@ import operator
 print("🤖 Inizializzazione dell'Attacco KPA Quantistico con S-DES...")
     
 # Valori di esempio (assicurati che corrispondano a una vera coppia generata dal tuo S-DES classico)
-plaintext_target = '10101010'
-ciphertext_target = '01101011' 
+plaintext_target = '00000000'
+ciphertext_target = '11111110' 
 
 # NUOVI PARAMETRI AGGIORNATI
 TOTAL_QUBITS = 31
@@ -82,8 +82,8 @@ print("✅ Simulazione completata!\n")
 # ==========================================
 sorted_counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
 
-print("--- TOP 5 CHIAVI TROVATE (Probabilità più alte) ---")
-for i in range(min(5, len(sorted_counts))):
+print("--- TOP 10 CHIAVI TROVATE (Probabilità più alte) ---")
+for i in range(min(10, len(sorted_counts))):
     key_str, count = sorted_counts[i]
     
     # Qiskit stampa i bit dal più significativo al meno significativo (little-endian per le stringhe).
