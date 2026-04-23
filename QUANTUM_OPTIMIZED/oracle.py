@@ -39,19 +39,29 @@ class KeyGenerator:   # nel file vecchio la classe era QuantumKeyGenerator, ma n
         
         return k1_indices, k2_indices
 
-
+# il processo di conversione da modello classico a circuito qunatistico reversbile è il seguente: 1. si realizza mappa di Karnaugh, 
 def sbox1_optimized():
     qc = QuantumCircuit(6, name="SBox1_opt")
+    # qubit:
+    # 0 = x1
+    # 1 = x2
+    # 2 = x3
+    # 3 = x4
+    # 4 = s1 (S1 bit 1)
+    # 5 = s2 (S1 bit 2)
 
-    # --- o0 = b0 ⊕ b1 ⊕ b2 ---
-    qc.cx(0, 4)
-    qc.cx(1, 4)
-    qc.cx(2, 4)
+    
+    # s1 = x1 XOR x3 (x2 AND NOT x4)    
+    # S1 - bit 1
+    qc.ccx(1, 3, 4)  # x2 AND x4
+    qc.cx(0, 4)      # x1 XOR
+    qc.cx(2, 4)      # x3 XOR
 
-    # --- o1 = (b1 AND b2) ⊕ b3 ⊕ b0 ---
-    qc.ccx(1, 2, 5)   # b1 AND b2
-    qc.cx(3, 5)
-    qc.cx(0, 5)
+    # s2 = (x1 AND x4) XOR x2 XOR x3
+    # S1 - bit 2 
+    qc.ccx(0, 3, 5)  # x1 AND x4
+    qc.cx(1, 5)      # x2 XOR
+    qc.cx(2, 5)      # x3 XOR
 
     return qc.to_gate()
 
