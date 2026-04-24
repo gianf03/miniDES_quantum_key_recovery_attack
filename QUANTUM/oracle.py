@@ -99,8 +99,8 @@ def build_sdes_oracle(plaintext_bin_str, ciphertext_bin_str):
     # GESTIONE QUBIT:
     # Qubits 0-9: Chiave in superposizione (10 qubit)
     # Qubits 10-17: Spazio di lavoro per il cifrato (8 qubit)
-    # Qubits 18-25: Ancillas per l'Espansione a 8 bit (8 qubit)
-    # Qubits 26-29: Ancillas per l'Output delle S-Box (4 qubit)
+    # Qubits 18-25: Ancille per l'Espansione a 8 bit (8 qubit)
+    # Qubits 26-29: Ancille per l'Output delle S-Box (4 qubit)
     # Qubit 30: Qubit di Fase per Grover (1 qubit)
     TOTAL_QUBITS = 31
     qc = QuantumCircuit(TOTAL_QUBITS, name="S-DES_Oracle")
@@ -112,7 +112,7 @@ def build_sdes_oracle(plaintext_bin_str, ciphertext_bin_str):
     phase_qubit = 30
     
     key_gen = KeyGenerator()
-    k1_idx, k2_idx = key_gen.get_subkeys_indices(key_qubits)
+    k1_idx, k2_idx = key_gen.get_subkeys_indices(key_qubits)   # ottengo le sottochiavi dalla master key
     
     # Ordini di permutazione
     IP_order = [1, 5, 2, 0, 3, 7, 4, 6]
@@ -123,10 +123,12 @@ def build_sdes_oracle(plaintext_bin_str, ciphertext_bin_str):
     # --- DEFINIZIONE DEL CALCOLO FORWARD (Cifratura) ---
     forward_qc = QuantumCircuit(TOTAL_QUBITS, name="S-DES_Forward")
     
+    # flip dei qubit a 1 del plaintext
     for i, bit in enumerate(plaintext_bin_str):
         if bit == '1':
             forward_qc.x(work_text[i])
             
+    # si applica la permutazione iniziale al plaintext e poi lo si divide in due parti
     current_text = apply_pbox(work_text, IP_order)
     L, R = q_split(current_text)
 

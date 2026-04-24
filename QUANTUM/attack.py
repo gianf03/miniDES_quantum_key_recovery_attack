@@ -2,7 +2,7 @@ from qiskit import transpile, QuantumCircuit
 from qiskit_aer import AerSimulator
 
 from oracle import build_sdes_oracle
-from diffuser import build_diffuser
+from diffuser import build_diffuser, build_diffuser_not_simulated_mcz
 
 import matplotlib.pyplot as plt
 import operator
@@ -31,7 +31,8 @@ main_qc.h(PHASE_QUBIT)
 
 print("   -> Costruzione dei gate...")
 oracle_gate = build_sdes_oracle(plaintext_target, ciphertext_target).to_gate()
-diffuser_gate = build_diffuser(NUM_KEY_QUBITS)
+#diffuser_gate = build_diffuser(NUM_KEY_QUBITS)
+diffuser_gate = build_diffuser_not_simulated_mcz(NUM_KEY_QUBITS)
 
 iterations = 1 # Manteniamo a 1 per non bloccare il PC  
 
@@ -71,7 +72,7 @@ simulator = AerSimulator(method='matrix_product_state')
 compiled_circuit = transpile(main_qc, simulator)
 
 # Riduciamo gli shots a 512 o 1024. Più sono alti, più è accurata la statistica.
-job = simulator.run(compiled_circuit, shots=1024)
+job = simulator.run(compiled_circuit, shots=8192)
 result = job.result()
 counts = result.get_counts()
 
