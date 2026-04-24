@@ -82,8 +82,8 @@ print("✅ Simulazione completata!\n")
 # ==========================================
 sorted_counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
 
-print("--- TOP 10 CHIAVI TROVATE (Probabilità più alte) ---")
-for i in range(min(10, len(sorted_counts))):
+print("--- TOP 20 CHIAVI TROVATE (Probabilità più alte) ---")
+for i in range(min(20, len(sorted_counts))):
     key_str, count = sorted_counts[i]
     
     # Qiskit stampa i bit dal più significativo al meno significativo (little-endian per le stringhe).

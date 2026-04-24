@@ -77,8 +77,9 @@ def build_sbox_gate(sbox_matrix, name="SBox"):
     return qc.to_gate()
 
 # Matrici SBox classiche
-SBox1_matrix = [[1, 0, 3, 2], [3, 2, 1, 0], [0, 2, 1, 3], [3, 1, 0, 2]]
-SBox2_matrix = [[0, 1, 2, 3], [2, 3, 0, 1], [3, 0, 1, 2], [2, 1, 0, 3]]
+
+SBox1_matrix = [[1, 0, 3, 2], [3, 2, 1, 0], [0, 2, 1, 3], [3, 1, 3, 2]]
+SBox2_matrix = [[0, 1, 2, 3], [2, 0, 1, 3], [3, 0, 1, 0], [2, 1, 0, 3]]
 
 sbox1_gate = build_sbox_gate(SBox1_matrix, "SBox1")
 sbox2_gate = build_sbox_gate(SBox2_matrix, "SBox2")
