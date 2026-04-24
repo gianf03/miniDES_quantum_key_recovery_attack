@@ -33,7 +33,7 @@ print("   -> Costruzione dei gate...")
 oracle_gate = build_sdes_oracle(plaintext_target, ciphertext_target).to_gate()
 diffuser_gate = build_diffuser(NUM_KEY_QUBITS)
 
-iterations = 2 # Manteniamo a 1 per non bloccare il PC  
+iterations = 1 # Manteniamo a 1 per non bloccare il PC  
 
 print(f"   -> Aggiunta di {iterations} iterazioni di Grover al circuito...")
 for i in range(iterations):
