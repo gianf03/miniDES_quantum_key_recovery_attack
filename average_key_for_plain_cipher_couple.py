@@ -29,6 +29,7 @@ for p in range(256):
 
 
 
+
 print("Distribuzione numero di chiavi equivalenti per coppia (P,C):")
 for num_keys, freq in sorted(distribution.items()):
     print(f"  {num_keys} chiavi equivalenti: {freq} coppie ({freq/total_pairs_tested*100:.1f}%)")

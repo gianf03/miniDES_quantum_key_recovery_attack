@@ -34,7 +34,7 @@ oracle_gate = build_sdes_oracle(plaintext_target, ciphertext_target).to_gate()
 #diffuser_gate = build_diffuser(NUM_KEY_QUBITS)
 diffuser_gate = build_diffuser_not_simulated_mcz(NUM_KEY_QUBITS)
 
-iterations = 1 # valore ottimale ottenuto dalla formula: parte intera inferiore di { pi/4 * sqrt(N/M) } dove N possibili chiavi ed M valore medio di chiavi possibili per una generica coppia cifrato - testo in chiaro  
+iterations = 13 # valore ottimale ottenuto dalla formula: parte intera inferiore di { pi/4 * sqrt(N/M) } dove N possibili chiavi ed M valore medio di chiavi possibili per una generica coppia cifrato - testo in chiaro  
 
 print(f"   -> Aggiunta di {iterations} iterazioni di Grover al circuito...")
 for i in range(iterations):
