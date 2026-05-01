@@ -35,7 +35,6 @@ for p in range(256):
     for c in range(256):
         plaintext = bitarray.bitarray(f"{p:08b}")
         ciphertext = bitarray.bitarray(f"{c:08b}")
-        # fai qualcosa con plaintext e ciphertext
 
         print("\n")
         print("Plaintext:\t", plaintext.to01())

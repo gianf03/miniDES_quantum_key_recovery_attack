@@ -1,97 +1,9 @@
 from qiskit import QuantumCircuit
 import numpy as np
+from utils import apply_pbox, q_split, q_merge
+import KeyGenerator
+from sbox import sbox1_gate, sbox2_gate
 
-# ==========================================
-# 1. FUNZIONI DI ROUTING (Costo Quantistico: 0)
-# ==========================================
-def q_split(qubit_indices):
-    mid = len(qubit_indices) // 2
-    return qubit_indices[:mid], qubit_indices[mid:]
-
-def q_merge(left, right):
-    return left + right
-
-def apply_pbox(qubit_indices, out_order):
-    return [qubit_indices[i] for i in out_order]
-
-class KeyGenerator:
-    def __init__(self):
-        self.P10_order = [2, 4, 1, 6, 3, 9, 0, 8, 7, 5]   # permutazione iniziale della chiave
-        self.P8_order = [5, 2, 6, 3, 7, 4, 9, 8]          # permutazione trascurando i primi due bit della chiave
-        self.LeftShift1_order = [1, 2, 3, 4, 0]           # shift di un bit a sinistra
-        self.LeftShift2_order = [2, 3, 4, 0, 1] 
-
-    def get_subkeys_indices(self, key_qubits):
-        x = apply_pbox(key_qubits, self.P10_order)        # permutazione iniziale della chiave di 10 bit
-        left, right = q_split(x)                          # split della permutazione in due sotto-parti di 5 bit
-        
-        leftK1 = apply_pbox(left, self.LeftShift1_order)
-        rightK1 = apply_pbox(right, self.LeftShift1_order)
-        
-        k1_indices = apply_pbox(q_merge(leftK1, rightK1), self.P8_order)
-        
-        leftK2 = apply_pbox(leftK1, self.LeftShift2_order)
-        rightK2 = apply_pbox(rightK1, self.LeftShift2_order)
-        
-        k2_indices = apply_pbox(q_merge(leftK2, rightK2), self.P8_order)
-        
-        return k1_indices, k2_indices
-
-# ==========================================
-# 2. GENERATORE S-BOX REVERSIBILE (Costo Quantistico: Alto)
-# ==========================================
-def build_sbox_gate(sbox_matrix, name="SBox"):
-    """
-    Crea un gate quantistico a 6 qubit (4 input + 2 output ancilla)
-    scrivendo la tabella di verità con porte Multi-Controlled-X (Toffoli).
-    """
-
-    # creo circuito con un registro di 6 qubit
-    qc = QuantumCircuit(6, name=name)    
-    
-    # Cicliamo su tutti i 16 possibili input a 4 bit
-    for val in range(16):
-        # trasformo val in un binario di 4 bit (aggiungendo zeri davanti se necessario)
-        b_str = format(val, '04b')    
-        b0, b1, b2, b3 = int(b_str[0]), int(b_str[1]), int(b_str[2]), int(b_str[3])
-        
-        # Logica classica per trovare riga e colonna
-        row = (b0 << 1) | b3
-        col = (b1 << 1) | b2
-        
-        out_val = sbox_matrix[row][col]
-        out_str = format(out_val, '02b')
-        
-        # i qubit di input che sono '0' vengono negati usando Pauli-x
-        for i, bit in enumerate(b_str):
-            if bit == '0':
-                qc.x(i)
-                
-        # la porta MCX controlla tutti i qubit di input della S-box; se s1 = 1, il primo qubit ancilla viene negato applicando Pauli-x; se s2 = 1, il secondo qubit ancilla viene negato applicando Pauli-x
-        if out_str[0] == '1':
-            qc.mcx([0, 1, 2, 3], 4)
-        if out_str[1] == '1':
-            qc.mcx([0, 1, 2, 3], 5)
-            
-        # ripristino i bit di input che sono stati portati a 1 per applicare MCX. Operazione possibile perché nel mondo quantum le operazioni sono reversibili
-        for i, bit in enumerate(b_str):
-            if bit == '0':
-                qc.x(i)
-                
-    # si restituisce il circuito trasformato in porta (da poter usare come bulding block per un circuito più complesso)
-    return qc.to_gate()
-
-# Matrici SBox classiche
-
-SBox1_matrix = [[1, 0, 3, 2], [3, 2, 1, 0], [0, 2, 1, 3], [3, 1, 3, 2]]
-SBox2_matrix = [[0, 1, 2, 3], [2, 0, 1, 3], [3, 0, 1, 0], [2, 1, 0, 3]]
-
-sbox1_gate = build_sbox_gate(SBox1_matrix, "SBox1")
-sbox2_gate = build_sbox_gate(SBox2_matrix, "SBox2")
-
-# ==========================================
-# 3. IL COSTRUTTORE DELL'ORACOLO S-DES (CORRETTO)
-# ==========================================
 def build_sdes_oracle(plaintext_bin_str, ciphertext_bin_str):
     """
     Costruisce l'oracolo di Grover per un Known Plaintext Attack (KPA).
@@ -206,8 +118,3 @@ def build_sdes_oracle(plaintext_bin_str, ciphertext_bin_str):
     #### MODIFICA TEMPORANEA #####
     
     return qc
-
-# Esempio di utilizzo:
-# KPA: Sappiamo che P = "11100011" produce C = "10101010" (valori fittizi di esempio)
-# oracle_circuit = build_sdes_oracle('11100011', '10101010')
-# oracle_circuit.draw('mpl')
