@@ -1,21 +1,16 @@
 from qiskit import QuantumCircuit
 
 def build_sbox_gate(sbox_matrix, name="SBox"):
-    """
-    Crea un gate quantistico a 6 qubit (4 input + 2 output ancilla)
-    scrivendo la tabella di verità con porte Multi-Controlled-X (Toffoli).
-    """
-
-    # creo circuito con un registro di 6 qubit
+    # Creazione circuito con 6 qubit (di cui 2 ancilla)
     qc = QuantumCircuit(6, name=name)    
     
-    # Cicliamo su tutti i 16 possibili input a 4 bit
+    # Per ogni possibile input a 4 bit si calcola l'output della S-box e si codifica nel circuito (ottenendo così una look-up table)
     for val in range(16):
-        # trasformo val in un binario di 4 bit (aggiungendo zeri davanti se necessario)
+        # trasformazione di val in una sequenza binaria di 4 bit (aggiungendo zeri davanti se necessario)
         b_str = format(val, '04b')    
         b0, b1, b2, b3 = int(b_str[0]), int(b_str[1]), int(b_str[2]), int(b_str[3])
         
-        # Logica classica per trovare riga e colonna
+        # logica classica per trovare riga e colonna
         row = (b0 << 1) | b3
         col = (b1 << 1) | b2
         
@@ -33,16 +28,15 @@ def build_sbox_gate(sbox_matrix, name="SBox"):
         if out_str[1] == '1':
             qc.mcx([0, 1, 2, 3], 5)
             
-        # ripristino i bit di input che sono stati portati a 1 per applicare MCX. Operazione possibile perché nel mondo quantum le operazioni sono reversibili
+        # ripristino i bit di input che sono stati portati a 1 per applicare MCX (gate Toffoli)
         for i, bit in enumerate(b_str):
             if bit == '0':
                 qc.x(i)
                 
-    # si restituisce il circuito trasformato in porta (da poter usare come bulding block per un circuito più complesso)
+    # restituzione circuito sotto forma di porta (da poter usare come bulding block per un circuito più complesso)
     return qc.to_gate()
 
 # Matrici SBox classiche
-
 SBox1_matrix = [[1, 0, 3, 2], [3, 2, 1, 0], [0, 2, 1, 3], [3, 1, 3, 2]]
 SBox2_matrix = [[0, 1, 2, 3], [2, 0, 1, 3], [3, 0, 1, 0], [2, 1, 0, 3]]
 
