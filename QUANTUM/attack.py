@@ -1,102 +1,69 @@
 from qiskit import transpile, QuantumCircuit
 from qiskit_aer import AerSimulator
-
 from oracle import build_sdes_oracle
-from diffuser import build_diffuser, build_diffuser_not_simulated_mcz
-
-import matplotlib.pyplot as plt
+from diffuser import build_diffuser
 import operator
 
-print("🤖 Inizializzazione dell'Attacco KPA Quantistico con S-DES...")
-    
-# Valori di esempio (assicurati che corrispondano a una vera coppia generata dal tuo S-DES classico)
+# Definizione coppia di cui si è in possesso (si sta conducendo un attacco KPA)
 plaintext_target = '00000000'
 ciphertext_target = '11111110' 
 
-# NUOVI PARAMETRI AGGIORNATI
+# Parametri
 TOTAL_QUBITS = 31
 NUM_KEY_QUBITS = 10
-PHASE_QUBIT = 30  # L'ultimo qubit della nuova architettura a 31
+PHASE_QUBIT = 30  # 31-esimo qubit
 
-# Creiamo il circuito principale (31 qubit quantistici, 10 bit classici per leggere la chiave)
+# Crezione circuito principale (31 qubit quantistici, di cui 10 destinati alla chiave)
 main_qc = QuantumCircuit(TOTAL_QUBITS, NUM_KEY_QUBITS)
 
-print("   -> Preparazione degli stati in superposizione...")
-# 1. Superposizione della chiave
+# Si portano in superposizione i qubit della chiave
 main_qc.h(range(NUM_KEY_QUBITS))
 
-# 2. Inizializzazione del qubit di Fase allo stato |->
-main_qc.x(PHASE_QUBIT)
-main_qc.h(PHASE_QUBIT)
+# Inizializzazione del qubit di fase allo stato |->
+main_qc.x(PHASE_QUBIT)   # il qubit passa da |0> a |1> 
+main_qc.h(PHASE_QUBIT)   # il qubit passa da |1> a |-> 
 
-print("   -> Costruzione dei gate...")
+# Costruzione del gate associato all'oracolo (riguarda tutti qubit)
 oracle_gate = build_sdes_oracle(plaintext_target, ciphertext_target).to_gate()
-#diffuser_gate = build_diffuser(NUM_KEY_QUBITS)
-diffuser_gate = build_diffuser_not_simulated_mcz(NUM_KEY_QUBITS)
+# Costruzione del gate associato al diffuser (riguarda solo i qubit associati alla chiave)
+diffuser_gate = build_diffuser(NUM_KEY_QUBITS)
 
-iterations = 12 # valore ottimale ottenuto dalla formula: parte intera inferiore di { pi/4 * sqrt(N/M) } dove N possibili chiavi ed M valore medio di chiavi possibili per una generica coppia cifrato - testo in chiaro  
+iterations = 12
 
-print(f"   -> Aggiunta di {iterations} iterazioni di Grover al circuito...")
+# Ripetizione dei due circuiti precedenti per iterations volte 
 for i in range(iterations):
-    # Aggiungi Oracolo su tutti e 31 i qubit
     main_qc.append(oracle_gate, range(TOTAL_QUBITS))
-    # Aggiungi Diffusore SOLO sui 10 qubit della chiave (da 0 a 9)
     main_qc.append(diffuser_gate, range(NUM_KEY_QUBITS))
     
-# 3. Misurazione
+# Misurazione finale
 main_qc.measure(range(NUM_KEY_QUBITS), range(NUM_KEY_QUBITS))
 
-# --- STAMPA DEL CIRCUITO ---
-print("\n🎨 Generazione della mappa del circuito...")
-# Stampiamo una versione testuale (fold disattivato per non spezzare le linee se lo schermo è largo)
-# Nota: su terminali piccoli potrebbe andare a capo in modo confusionario.
-#main_qc.draw('mpl', fold=-1)
+# STAMPA DEL CIRCUITO
 print(main_qc.draw('text', fold=-1))
 
-# Se vuoi l'immagine bella su Jupyter Notebook o salvarla come file:
-# fig = main_qc.draw('mpl')
-# fig.savefig("circuito_grover_sdes.png")
+# Inizializzazione del simulatore
+simulator = AerSimulator(method='matrix_product_state') # Si rappresenta lo stato quantistico con il metodo MPS per aggirare i limiti della RAM (con statevector ci vorrebbero almeno 35 GB)
 
-# --- ESECUZIONE SIMULATORE ---
-print("\n🚀 Avvio del simulatore quantistico (Qiskit Aer)...")
-
-
-
-print("⏳ Attendi, il calcolo della matrice a 31 qubit richiederà un po' di tempo...")
-
-#simulator = AerSimulator()
-
-# Usiamo il metodo MPS per aggirare i limiti della RAM
-simulator = AerSimulator(method='matrix_product_state')
-
-# nuova tecnica che approssima
-#simulator = AerSimulator(method='extended_stabilizer', max_memory_mb = 8192)
-
+# Compilazione del circuito
 compiled_circuit = transpile(main_qc, simulator)
 
-# Riduciamo gli shots a 512 o 1024. Più sono alti, più è accurata la statistica.
+# Avvio del simulatore e collezione dei risultati
 shots = 8192
 job = simulator.run(compiled_circuit, shots=shots)
 result = job.result()
 counts = result.get_counts()
 
-print("✅ Simulazione completata!\n")
+print("Simulazione completata!\n")
 
-# ==========================================
-# 6. ANALISI DEI RISULTATI
-# ==========================================
+# Analisi dei risultati
 sorted_counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
 
 print("--- TOP 20 CHIAVI TROVATE (Probabilità più alte) ---")
 for i in range(min(20, len(sorted_counts))):
     key_str, count = sorted_counts[i]
     
-    # Qiskit stampa i bit dal più significativo al meno significativo (little-endian per le stringhe).
-    # Lo raddrizziamo con [::-1] per farlo corrispondere all'array Python [k0, k1, k2...]
+    # Qiskit stampa i bit dal più significativo al meno significativo (little-endian per le stringhe). Occorre quindi leggerli dall'ultimo al primo
     reversed_key = key_str[::-1] 
     
     prob = (count / shots) * 100          
     print(f"{i+1}. Chiave Binaria: {reversed_key} | Array: [{', '.join(reversed_key)}] -> Misurata {count} volte ({prob:.3f}%)")
-
-
-plt.show()
