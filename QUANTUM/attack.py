@@ -8,6 +8,11 @@ import operator
 plaintext_target = '00000000'
 ciphertext_target = '11111110' 
 
+
+print("\n--- COPPIA SU CUI ESEGUIRE KEY RECOVERY ---\n")
+print(f"Plaintext: {plaintext_target}")
+print(f"Ciphertext: {ciphertext_target}\n")
+
 # Parametri
 TOTAL_QUBITS = 31
 NUM_KEY_QUBITS = 10
@@ -48,8 +53,10 @@ simulator = AerSimulator(method='matrix_product_state') # Si rappresenta lo stat
 # Compilazione del circuito
 compiled_circuit = transpile(main_qc, simulator)
 
+print("--- ESECUZIONE ATTACCO ---\n")
 # Avvio del simulatore e collezione dei risultati
 shots = 8192
+print("Simulazione cominciata!")
 job = simulator.run(compiled_circuit, shots=shots)
 result = job.result()
 counts = result.get_counts()
@@ -59,7 +66,7 @@ print("Simulazione completata!\n")
 # Analisi dei risultati
 sorted_counts = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
 
-print("--- TOP 20 CHIAVI TROVATE (Probabilità più alte) ---")
+print("--- TOP 20 CHIAVI TROVATE ---\n")
 for i in range(min(20, len(sorted_counts))):
     key_str, count = sorted_counts[i]
     
