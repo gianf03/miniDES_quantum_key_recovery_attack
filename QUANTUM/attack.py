@@ -74,7 +74,7 @@ def attack(plaintext_target, ciphertext_target):
 
 
 # Definizione coppia di cui si è in possesso (si sta conducendo un attacco KPA)
-plaintext_target = '00000000'
-ciphertext_target = '11111110' 
+plaintext_target = '00010111'
+ciphertext_target = '00010101' 
 
 attack(plaintext_target=plaintext_target, ciphertext_target=ciphertext_target)

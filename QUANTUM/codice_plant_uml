@@ -1,0 +1,29 @@
+@startuml
+
+class "Attack" << (F,orchid) file >> {
+    {method} attack(plaintext: str, ciphertext:str)
+}
+
+class "Oracle" << (F,orchid) file >> {
+    {method} build_sdes_oracle(plaintext: str, ciphertext: str): Gate
+}
+
+class "Diffuser" << (F,orchid) file >> {
+    {method} build_diffuser(num_key_qubits: int): Gate
+}
+
+class "S_Box" << (F,orchid) file >> {
+    {method} build_sbox(sbox_matrix: int[ ][ ], name:str): Gate
+}
+
+class "KeyGenerator" << (C,lightgreen) class >> {
+    {method} init()
+    {method} get_subkeys_indices(key_qubits: int[ ]): int[ ], int[ ]
+}
+
+Attack --> Oracle : usa
+Attack --> Diffuser : usa
+Oracle --> S_Box : usa
+Oracle --> KeyGenerator : usa
+
+@enduml
